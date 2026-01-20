@@ -14,7 +14,7 @@ The performance bottleneck was caused by inefficient data access patterns:
 - Performing aggregations in application code instead of the database
 
 This resulted in multiple round-trips to SQL Server and unnecessary in-memory processing.
-
+docs/benchmarks/1.jpg
 ---
 
 ###  Solution Implemented
@@ -26,7 +26,8 @@ The endpoint was refactored to optimize query execution and reduce database over
 - Kept the response contract and business logic unchanged
 
 The generated report remains functionally identical to the previous implementation.
-
+docs/benchmarks/3.jpg
+docs/benchmarks/2.jpg
 ---
 
 ###  Performance Benchmark (SQL Server Profiler)
@@ -36,13 +37,15 @@ Metrics were calculated by aggregating all EF Core queries executed during a sin
 #### Before optimization
 - Total Duration: ~8,956 ms
 - Logical Reads: ~24
+docs/benchmarks/4_Trace_Before.JPG
 
 #### After optimization
 - Total Duration: ~10 ms
 - Logical Reads: ~24
+docs/benchmarks/4_Trace_After.JPG
 
 Although logical reads remained constant due to the small dataset fitting in memory, execution time was drastically reduced by eliminating N+1 queries, reducing round-trips, and moving aggregations to the database.
-
+docs/benchmarks/4_Api_Reports.jpg
 ---
 
 ###  Validation
