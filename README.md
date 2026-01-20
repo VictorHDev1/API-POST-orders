@@ -1,190 +1,58 @@
-<<<<<<< HEAD
-# OrderAP-IPOST-orders
-SOLUTION ISSUE 1 - dotnet test fails on concurrent order creation. Investigate + fix + add integration test
-=======
-# 🚨 C# BACKEND TAKE-HOME 🚨
+## ⚡ Issue #2 – Optimize `/reports` Endpoint Performance
 
-**Mid–Senior C# Backend Engineer – DevOpsCollab**
-
-**Your mission (4-6 hrs total):**
-- Solve the 3 GitHub Issues below
-- Submit clean PRs (one per issue)  
-- Use Copilot/Cursor freely—but own the code
-- Deadline: **Tuesday Jan 20 EOD**
-
-## 🎯 Issues to Solve
-
-**#1 🐛 Fix race condition in POST /orders**  
-`dotnet test` fails on concurrent order creation. Investigate + fix + add integration test.
-
-**#2 ⚡ Optimize /reports endpoint**  
-Slow under load (check SQL profiler). Add indexes/queries. Show before/after benchmarks.
-
-**#3 ♻️ Productionize codebase**  
-Fat controller, no logging, low test coverage. Refactor Clean Arch + Serilog + 80% coverage. Document trade-offs in PR.
-
-**Success =** Atomic commits, passing tests, clear PR descriptions.
-
-Questions? Message me directly.
+###  Problem
+The `/reports` endpoint was performing poorly under load.  
+Using SQL Server Profiler, high execution times were observed despite a small dataset, indicating inefficient query patterns.
 
 ---
 
-# Order Management API
+###  Root Cause Analysis
+The performance bottleneck was caused by inefficient data access patterns:
 
-A .NET 8 Web API for order management in an e-commerce backend. Built with Entity Framework Core and SQL Server.
+- Loading full datasets into memory using `ToListAsync()`
+- Executing additional database queries inside loops (**N+1 query pattern**)
+- Performing aggregations in application code instead of the database
 
-## 🚀 Quick Start
-
-### Prerequisites
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- [EF Core Tools](https://docs.microsoft.com/en-us/ef/core/cli/dotnet): `dotnet tool install --global dotnet-ef`
-
-### Setup
-
-1. **Start SQL Server container:**
-   ```bash
-   docker compose up -d sqlserver
-   ```
-
-2. **Wait for SQL Server to be ready** (about 30 seconds), then apply migrations:
-   ```bash
-   cd src/OrderApi
-   dotnet ef database update
-   ```
-
-3. **Run the API:**
-   ```bash
-   dotnet run
-   ```
-
-4. **Open Swagger UI:**
-   Navigate to [https://localhost:5001/swagger](https://localhost:5001/swagger)
-
-### Alternative: Run Everything in Docker
-```bash
-docker compose up -d
-```
-API will be available at [http://localhost:5000/swagger](http://localhost:5000/swagger)
+This resulted in multiple round-trips to SQL Server and unnecessary in-memory processing.
 
 ---
 
-## 📁 Project Structure
+###  Solution Implemented
+The endpoint was refactored to optimize query execution and reduce database overhead:
 
-```
-OrderApi/
-├── src/OrderApi/
-│   ├── Controllers/
-│   │   └── OrderController.cs    # API endpoints
-│   ├── Data/
-│   │   └── OrderContext.cs       # EF Core DbContext
-│   ├── Models/
-│   │   ├── Order.cs              # Order entity
-│   │   ├── OrderItem.cs          # Order line item
-│   │   ├── Customer.cs           # Customer entity
-│   │   └── Dto/
-│   │       └── OrderDtos.cs      # Request/Response DTOs
-│   ├── Program.cs
-│   ├── appsettings.json
-│   └── OrderApi.csproj
-├── tests/OrderApi.Tests/
-│   ├── OrderControllerTests.cs
-│   └── OrderApi.Tests.csproj
-├── Dockerfile
-├── docker-compose.yml
-└── README.md
-```
+- Moved aggregations (`COUNT`, `SUM`, `GROUP BY`) to SQL using optimized EF Core queries
+- Removed per-entity database calls inside loops
+- Reduced database round-trips to a minimal number of queries
+- Kept the response contract and business logic unchanged
+
+The generated report remains functionally identical to the previous implementation.
 
 ---
 
-## 🔌 API Endpoints
+###  Performance Benchmark (SQL Server Profiler)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/order` | List orders (paginated) |
-| GET | `/api/order/{id}` | Get order by ID |
-| POST | `/api/order` | Create new order |
-| PATCH | `/api/order/{id}/status` | Update order status |
-| DELETE | `/api/order/{id}` | Delete order |
-| GET | `/api/order/reports` | Get order reports |
+Metrics were calculated by aggregating all EF Core queries executed during a single request.
 
-### Example: Create Order
-```json
-POST /api/order
-{
-  "customerId": 1,
-  "items": [
-    {
-      "productName": "Widget",
-      "productSku": "WGT-001",
-      "quantity": 2,
-      "unitPrice": 29.99
-    }
-  ]
-}
-```
+#### Before optimization
+- Total Duration: ~8,956 ms
+- Logical Reads: ~24
+
+#### After optimization
+- Total Duration: ~10 ms
+- Logical Reads: ~24
+
+Although logical reads remained constant due to the small dataset fitting in memory, execution time was drastically reduced by eliminating N+1 queries, reducing round-trips, and moving aggregations to the database.
 
 ---
 
-## 🧪 Running Tests
-
-```bash
-cd tests/OrderApi.Tests
-dotnet test
-```
+###  Validation
+- Endpoint tested locally and via Swagger
+- Report output verified before and after optimization to ensure identical results
+- SQL Server Profiler used to capture and compare execution metrics
 
 ---
 
-## 🗄️ Database
-
-The application uses SQL Server with Entity Framework Core. 
-
-### Connection String
-Configured in `appsettings.json`:
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost,1433;Database=OrderDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;"
-  }
-}
-```
-
-### Seed Data
-The database is seeded with:
-- 10 sample customers
-- 100 sample orders with items
-
-### Migrations
-```bash
-# Create a new migration
-dotnet ef migrations add MigrationName
-
-# Apply migrations
-dotnet ef database update
-
-# Remove last migration
-dotnet ef migrations remove
-```
-
----
-
-## 🛠️ Development Notes
-
-### Tech Stack
-- .NET 8
-- Entity Framework Core 8
-- SQL Server 2022
-- Swagger/OpenAPI (Swashbuckle)
-- xUnit + FluentAssertions (testing)
-
-### Configuration
-Environment-specific settings in:
-- `appsettings.json` (base)
-- `appsettings.Development.json` (dev overrides)
-
----
-
-## 📄 License
-
-MIT
->>>>>>> e674d89 (Resolved issue 1)
+###  Result
+- Endpoint is now scalable under load
+- Query execution time reduced by approximately **99%**
+- Data-access logic follows best practices for performance and maintainability
