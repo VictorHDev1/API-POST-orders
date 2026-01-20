@@ -1,4 +1,7 @@
-# ♻️ Issue #3 – Productionize Codebase
+# ♻️ Issue  solution #3
+#3 ♻️ Productionize codebase
+Fat controller, no logging, low test coverage. Refactor Clean Arch + Serilog + 80% coverage. Document trade-offs in PR.
+
 Clean Architecture · Serilog · High Test Coverage
 
 Fat controller, no logging, low test coverage.
@@ -21,11 +24,11 @@ The codebase was refactored following Clean Architecture principles, adding stru
 The solution is structured into five projects, enforcing a clear separation of concerns:
 
 OrderApi
-├── OrderApi
-├── OrderApi.Application
-├── OrderApi.Domain
-├── OrderApi.Infrastructure
-├── OrderApiTest
+  ├── OrderApi
+  ├── OrderApi.Application
+  ├── OrderApi.Domain
+  ├── OrderApi.Infrastructure
+  ├── OrderApiTest
 
 ## Layer Responsibilities
 
