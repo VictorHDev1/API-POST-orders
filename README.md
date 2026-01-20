@@ -23,12 +23,55 @@ The codebase was refactored following Clean Architecture principles, adding stru
 
 The solution is structured into five projects, enforcing a clear separation of concerns:
 
-OrderApi
-  ├── OrderApi
-  ├── OrderApi.Application
-  ├── OrderApi.Domain
-  ├── OrderApi.Infrastructure
-  ├── OrderApiTest
+## 📁 Project Structure
+
+```
+
+├── OrderApi/
+│   ├── Controllers/
+│   │   └── OrderController.cs    # API endpoints
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   ├── Program.cs
+├── OrderApi.Application/
+│   |   ├── BusinessException/
+│   │   |    └── BusinessException.cs  
+│   |   ├── Dtos/
+│   │   |    ├── CreateOrderItemRequest.cs
+│   │   |    ├── CreateOrderRequest.cs
+│   │   |    ├── OrderItemResponse.cs
+│   │   |    ├── OrderResponse.cs
+│   │   |    └── OrderSummaryResponse.cs       
+│   |   ├── Interfaces/
+│   │   |    ├── ICustomerRepository.cs
+│   │   |    ├── IOrderRepository.cs
+│   │   |    └── IOrderService.cs   
+│   │   ├── Mappers/
+│   │   |    ├── OrderMapper.cs   
+│   │   |    ├── Services/
+│   │   |    └── OrderService.cs   
+├──OrderApi.Domain/
+│   │   ├── Entities/
+│   │   |    ├── Customer.cs   
+│   │   |    ├── Order/
+│   │   |    └── OrderItem.cs   
+│   │   ├── Enums/
+│   │   |    └── OrderStatus.cs
+├──OrderApi.Infrastructure/
+│   │   ├── Logging/
+│   │   |    └── SerilogConfiguration.cs
+│   │   ├── Persistence/
+│   │   |    └── OrderContext.cs
+│   │   ├── Repositories/
+│   │   |    ├── OrderContext.cs
+│   │   |    └── OrderRepository.cs
+├──OrderAPITest/
+│   │   |    └── Controllers.cs
+└── README.md
+```
+
+---
+
 
 ## Layer Responsibilities
 
@@ -144,11 +187,9 @@ docker compose up -d
 Swagger UI:
 http://localhost:5000/swagger
 
-## API Usage Example
-
-Create Order
+### Example: Create Order
+```json
 POST /api/order
-
 {
   "customerId": 1,
   "items": [
@@ -160,11 +201,14 @@ POST /api/order
     }
   ]
 }
+```
 
-## Endpoints
+## 🔌 API Endpoints
 
-GET /api/order/{id}  - Get order by ID
-POST /api/order      - Create new order
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/order/{id}` | Get order by ID |
+| POST | `/api/order` | Create new order |
 
 ## Database
 
